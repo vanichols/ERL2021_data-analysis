@@ -403,40 +403,8 @@ yield_rug <-
 
 # put together ------------------------------------------------------------
 
-# legned on top and centered?
-#https://github.com/thomasp85/patchwork/issues/122
-
-#(yield_fig / leach_fig) | buff_fig + plot_layout(guides = "collect") & theme(legend.position = 'top')
-
-
-#--not working, i give up. actually it is working.
-# (yield_fig / leach_fig) | buff_fig 
-# ggsave("../../../Box/1_Gina_Projects/proj_Ncurve/fig_yld-lch-buff-10-09-20.png")
-
-
-#--trying with boxplots
-# (yield_fig2 + yield_fig + leach_fig2 + leach_fig + plot_layout(ncol = 1, heights = c(1, 4, 1, 4))) |buff_fig
-# 
-# ggsave("../../../Box/1_Gina_Projects/proj_Ncurve/fig_yld-lch-buff-9-14-20.png")
-# 
-# 
-# 
-# #--trying with only aonr boxplots?
-# (yield_fig + yield_fig2 + leach_fig + plot_layout(ncol = 1, heights = c(4, 1, 4))) |buff_fig
-# 
-# ggsave("../../../Box/1_Gina_Projects/proj_Ncurve/fig_yld-lch-buff-9-14-20-v2.png")
-
-
-
-#--yield rug?
-# (yield_rug + leach_rug + plot_layout(ncol = 1, heights = c(4, 4))) |buff_fig
-# ggsave("../../../Box/1_Gina_Projects/proj_Ncurve/fig_yld-lch-buff-10-09-20-v3.png")
-
-
 buff_fig | (yield_rug + leach_rug + plot_layout(ncol = 1, heights = c(4, 4)))
-#ggsave("../../../Box/1_Gina_Projects/proj_Ncurve/fig_yld-lch-buff-10-16-20.png")
 ggsave("fig2-violin.png")
 
 buff_fig2 | (yield_rug + leach_rug + plot_layout(ncol = 1, heights = c(4, 4)))
-#ggsave("../../../Box/1_Gina_Projects/proj_Ncurve/fig_yld-lch-buff-10-16-20.png")
 ggsave("fig2-mirror.png")

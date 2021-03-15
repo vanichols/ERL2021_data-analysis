@@ -52,31 +52,5 @@ rawdat %>%
         legend.text = element_text(size = rel(1.2))) + 
   facet_grid(nrateF2~., scales = "free")
 
-ggsave("fig3_")
-#ggsave("../../../Box/1_Gina_Projects/proj_Ncurve/manuscript/fig_n-leaching-9-14-2020.png")
-
-rawdat %>% 
-  mutate(nrateF = as.factor(nrate_kgha),
-         nrateF2 = factor(nrateF, levels = rev(levels(nrateF))),
-         croprotnice = dplyr::recode(croprot,
-                                     corncc = "Continuous Maize",
-                                     corncs = "Rotated Maize",
-                                     soycs = "Rotated Soybean")) %>%
-  group_by(nrateF2, croprotnice) %>% 
-  mutate(mnleach = mean(leaching_kgha)) %>% 
-  ggplot(aes(x = leaching_kgha, fill = croprotnice)) +
-  geom_freqpoly() +
-  #geom_point(aes(x = mnleach, y = nrateF2), pch = 22, size = 3) +
-  scale_fill_manual(values = c(clr1, clr2, clr3)) + 
-  # labs(y = expression(Nitrogen~Feritilizer~Rate~(kg~N~ha^-1)),
-  #      x = expression(Nitrogen~Leaching~(kg~N~ha^-1)),
-  #      fill = NULL) + 
-  # theme_bw() + 
-  # theme(axis.text = element_text(size = rel(1.2)),
-  #       axis.title = element_text(size = rel(1.3)),
-  #       legend.justification = c(1, 1),
-  #       legend.position = c(0.95,0.99),
-  #       legend.background = element_blank(),
-  #       legend.text = element_text(size = rel(1.2))) + 
-  facet_grid(nrateF2~., scales = "free")
+ggsave("fig3_stupid.png")
 

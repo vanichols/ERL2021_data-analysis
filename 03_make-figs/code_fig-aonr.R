@@ -66,5 +66,4 @@ aonr %>%
   theme_bw() +
   theme(legend.position = "top")
 
-ggsave("../../../Box/1_Gina_Projects/proj_Ncurve/fig_aonr-10-09-20.png")
 
