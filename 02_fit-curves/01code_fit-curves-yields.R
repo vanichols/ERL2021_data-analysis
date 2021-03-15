@@ -20,6 +20,7 @@ library(car) #--overwrites recode in dplyr
 library(minpack.lm)
 library(janitor)
 library(broom)
+library(tibble)
 
 
 # overview ----------------------------------------------------------------
@@ -32,8 +33,7 @@ dat <-
                                   "sc" = "cs"),
          rotation = as.factor(rotation)) %>%
   select(nrate_kgha, everything()) %>% 
-  pivot_longer(annual_rain_mm:yield_maize_buac) %>% 
-  select(-date, -doy)
+  pivot_longer(leaching_kgha:yield_maize_buac)
 
 
 ylds <- 
@@ -72,18 +72,37 @@ ymod3a <- update(ymod2, random = list(site_id = pdDiag(a + b + xs ~ 1),
 
 # extract coefficients ----------------------------------------------------
 
+#--ex from leaching
+# coef(lmod3a, effects = "random") %>% 
+#   rownames_to_column() %>% 
+#   as_tibble() %>% 
+#   separate(rowname, into = c("site", "x", "year", "rotation")) %>% 
+#   pivot_longer(cols = 5:12, names_to = "term", values_to = "estimate") %>% 
+#   mutate(term2 = str_sub(term, 1, 2),
+#          term2 = str_replace_all(term2, "[[:punct:]]", ""),
+#          termrot = ifelse(grepl("cs", term), "csterm", "ccterm")) %>%
+#   select(-term) %>%
+#   pivot_wider(names_from = termrot,
+#               values_from = estimate) %>%
+#   mutate(est = ifelse(rotation == "cs", ccterm + csterm, ccterm)) %>%
+#   select(-ccterm, -csterm, -x) %>%
+#   pivot_wider(names_from = term2, values_from = est)
+
+
 yld_coefs <- 
-  tidy(ymod3a, effects = "random") %>% 
+  coef(ymod3a, effects = "random") %>% 
+  rownames_to_column() %>% 
+  as_tibble() %>% 
+  separate(rowname, into = c("site", "x", "year", "rotation")) %>% 
+  pivot_longer(cols = 5:ncol(.), names_to = "term", values_to = "estimate") %>% 
   mutate(term2 = str_sub(term, 1, 2),
          term2 = str_replace_all(term2, "[[:punct:]]", ""),
-         termrot = ifelse(grepl("cs", term), "csterm", "ccterm")) %>% #--if it doesn't have a 'cs', assume it's cc
-  select(-term) %>% 
-  pivot_wider(names_from = termrot, 
-              values_from = estimate) %>%  
-  separate(level, into = c("site", "site_year_rotation"), sep = "/") %>% 
-  separate(site_year_rotation, into = c("site", "year", "rotation"), sep = "_") %>% 
-  mutate(est = ifelse(rotation == "cs", ccterm + csterm, ccterm)) %>% #--if it's the cs rot, add the cs effect
-  select(-ccterm, -csterm, -group) %>% 
+         termrot = ifelse(grepl("cs", term), "csterm", "ccterm")) %>%
+  select(-term) %>%
+  pivot_wider(names_from = termrot,
+              values_from = estimate) %>%
+  mutate(est = ifelse(rotation == "cs", ccterm + csterm, ccterm)) %>%
+  select(-ccterm, -csterm, -x) %>%
   pivot_wider(names_from = term2, values_from = est)
 
   
@@ -95,23 +114,9 @@ write_csv(yld_coefs, "02_fit-curves/fc_blin-yield-parms-mm.csv")
 # What is spread in xs estimate?
 
 yld_xs <- 
-  tidy(ymod3a, effects = "random") %>% 
-  mutate(term2 = str_sub(term, 1, 2),
-         term2 = str_replace_all(term2, "[[:punct:]]", ""),
-         termrot = ifelse(grepl("cs", term), "csterm", "ccterm")) %>% #--if it doesn't have a 'cs', assume it's cc
-  select(-term) %>% 
-  pivot_wider(names_from = termrot, 
-              values_from = estimate) %>%  
-  separate(level, into = c("site", "site_year_rotation"), sep = "/") %>% 
-  filter(term2 == "xs") %>% 
-  separate(site_year_rotation, into = c("site", "year", "rotation"), sep = "_") %>% 
-  mutate(est = ifelse(rotation == "cs", ccterm + csterm, ccterm)) %>% #--if it's the cs rot, add the cs effect
-  select(-ccterm, -csterm, -group) 
-
+  yld_coefs %>% select(-a, -b)
 
 write_csv(yld_xs, "02_fit-curves/fc_blin-yield-xs-mm.csv")
-
-
 
 
 
@@ -169,23 +174,4 @@ pred_dat2 <-
 pred_dat2 %>% write_csv("02_fit-curves/fc_yield-preds-rot.csv")
 
 
-
-# use fernando's thing? ---------------------------------------------------
-
-sim_yld <- simulate_nlme(ymod3a, nsim = 100, psim = 1, level = 0)
-yldsG$mn.s <- apply(sim_yld, 1, mean)
-leachG$mxn.s <- apply(sim_leach, 1, max)
-leachG$mnn.s <- apply(sim_leach, 1, min)
-
-
-ggplot() + 
-  geom_ribbon(data = leachG,
-              mapping = aes(x = nrate_kgha,
-                            ymin = mxn.s,
-                            ymax = mnn.s, fill = rotation),
-              alpha = 0.5) +
-  geom_line(data = leachG, aes(x = nrate_kgha, 
-                               y = prds, 
-                               color = rotation), size = 2) +
-  labs(y = "leaching_kgha")
 
